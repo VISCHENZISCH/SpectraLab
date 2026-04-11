@@ -6,6 +6,7 @@ venc/
 venv/
 env/
 .env
+.idea/
 ressources/
 # Flask
 instance/
