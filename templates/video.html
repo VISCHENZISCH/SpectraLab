@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Others Eyes | Vidéo Studio</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../static/css/common.css">
+    <link rel="stylesheet" href="../static/css/video.css">
+</head>
+
+<body>
+    <div class="bg-text">VISCHENZISCH</div>
+    <div class="container">
+        <header class="header-container">
+            <div class="logo">
+                <img src="../static/img/logo.png" alt="Aura Logo" class="logo-img">
+                <span style="font-weight: 800; font-size: 1.9rem;">Others <span
+                        style="color: var(--accent)">Eyes</span></span>
+            </div>
+            <nav>
+                <div class="nav-links">
+                    <a href="index.html">Images</a>
+                    <a href="audio.html">Audio</a>
+                    <a href="video.html" class="active">Vidéo</a>
+                </div>
+            </nav>
+            <div style="width: 180px;"></div>
+        </header>
+
+        <div class="pipeline-header">
+            <h1 class="page-title">Vidéo <span style="color: var(--accent)">Others Eyes</span></h1>
+            <div class="pipeline-pills">
+                <span class="pill active" data-view="compression">Optimisation</span>
+                <span class="pill" data-view="decoupage">Découpage</span>
+                <span class="pill" data-view="analyse">Analyse IA</span>
+                <span class="pill" data-view="encodage">Encodage</span>
+            </div>
+        </div>
+
+        <main class="dashboard">
+            <!-- Zone Preview Video -->
+            <div class="preview-area">
+                <div class="card upload-hero" id="drop-zone-video" style="min-height: 450px;">
+                    <input type="file" id="video-input" hidden accept="video/*">
+
+                    <div id="upload-prompt" style="text-align: center;">
+                        <div class="icon-box">
+                            <i data-lucide="clapperboard" size="32"></i>
+                        </div>
+                        <h3 style="margin-bottom: 0.5rem;">Importer une séquence</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">4K, 1080p, ProRes...</p>
+                    </div>
+
+                    <!-- Preview Animée -->
+                    <div id="video-preview-container" style="display: none; width: 100%; padding: 2rem;">
+                        <div class="hacking-status-row">
+                            <div class="hud-item"><i data-lucide="scan" size="12"></i> FACE_DETECT: ACTIVE</div>
+                            <div class="hud-item"><i data-lucide="binary" size="12"></i> ENCRYPTION: LOW</div>
+                            <div class="hud-item danger"><i data-lucide="shield-off" size="12"></i> METADATA_STRIP:
+                                READY</div>
+                        </div>
+
+                        <div class="video-container">
+                            <video id="video-preview"></video>
+
+                            <div class="video-controls">
+                                <div class="seeker-bar" id="video-seeker">
+                                    <div class="seeker-progress" id="video-progress-bar"></div>
+                                </div>
+                                <div class="control-row">
+                                    <button class="btn-player" id="video-play-pause">
+                                        <i data-lucide="play" size="20"></i>
+                                    </button>
+                                    <div class="time-display">
+                                        <span id="current-time">00:00</span> / <span id="total-time">00:00</span>
+                                    </div>
+                                    <div style="flex: 1;"></div>
+                                    <button class="btn-player"><i data-lucide="maximize" size="18"></i></button>
+                                    <button class="btn-player"><i data-lucide="settings" size="18"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metadata row -->
+                        <div class="video-meta-pro">
+                            <div class="meta-box"><label>Résolution</label><span>4K UHD</span></div>
+                            <div class="meta-box"><label>Frame Rate</label><span>60 FPS</span></div>
+                            <div class="meta-box"><label>Durée</label><span>02:45</span></div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 3rem;">
+                            <button id="remove-video" class="btn-format"
+                                style="border-color: rgba(255, 255, 255, 0.1); color: var(--text-muted); padding: 10px 20px;">
+                                <i data-lucide="refresh-cw" size="14"></i> Changer de vidéo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Video -->
+            <aside class="panel">
+                <!-- 1. COMPRESSION VIEW -->
+                <div class="pipeline-view active" id="view-compression">
+                    <div class="card section">
+                        <div class="group-title">Optimisation</div>
+                        <div class="format-selection-card">
+                            <div class="format-group">
+                                <div class="format-grid" style="grid-template-columns: 1fr 1fr;">
+                                    <button class="btn-format active" data-res="1080">Full HD</button>
+                                    <button class="btn-format" data-res="720">HD Ready</button>
+                                    <button class="btn-format" data-res="480">Web SD</button>
+                                    <button class="btn-format" data-res="original">Original</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. DÉCOUPAGE VIEW -->
+                <div class="pipeline-view" id="view-decoupage">
+                    <div class="card section">
+                        <div class="group-title">DÉCOUPAGE VIDÉO</div>
+                        <div class="dimension-inputs">
+                            <div class="input-group">
+                                <label>Début (sec)</label>
+                                <input type="number" id="trim-start-sidebar" class="input-field" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label>Fin (sec)</label>
+                                <input type="number" id="trim-end-sidebar" class="input-field" value="0">
+                            </div>
+                        </div>
+                        <div class="setting-item-col" style="margin-top: 1.5rem;">
+                            <label class="format-label">Précis (Frame stepping)</label>
+                            <label class="toggle">
+                                <input type="checkbox">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ANALYSE IA VIEW -->
+                <div class="pipeline-view" id="view-analyse">
+                    <div class="card section">
+                        <div class="group-title" style="color: var(--accent)">CYBER ANALYTICS</div>
+                        <div class="setting-item">
+                            <span>Reconnaissance Faciale</span>
+                            <span class="badge"
+                                style="background: rgba(79,123,255,0.1); color: var(--accent); border: 1px solid var(--accent); font-size: 8px;">BIENTÔT</span>
+                        </div>
+                        <div class="setting-item">
+                            <span>Détection de mouvements</span>
+                            <label class="toggle">
+                                <input type="checkbox" disabled>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <span>Extraction de plaques</span>
+                            <label class="toggle">
+                                <input type="checkbox" disabled>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. ENCODAGE VIEW -->
+                <div class="pipeline-view" id="view-encodage">
+                    <div class="card section">
+                        <div class="group-title">
+                            <i data-lucide="video" size="14"></i>
+                            FORMAT DE SORTIE
+                        </div>
+                        <div class="format-selection-card">
+                            <div class="format-group">
+                                <div class="format-label">MODERNE</div>
+                                <div class="format-grid">
+                                    <button class="btn-format active">MP4</button>
+                                    <button class="btn-format">WEBM</button>
+                                    <button class="btn-format">MPV</button>
+                                    <button class="btn-format">MKV</button>
+                                </div>
+                            </div>
+                            <div class="format-group">
+                                <div class="format-label">HÉRITAGE</div>
+                                <div class="format-grid">
+                                    <button class="btn-format">MOV</button>
+                                    <button class="btn-format">AVI</button>
+                                    <button class="btn-format">GIF</button>
+                                    <button class="btn-format">FLV</button>
+                                </div>
+                            </div>
+                            <div class="format-group">
+                                <div class="format-label">AUDIO ONLY</div>
+                                <div class="format-grid">
+                                    <button class="btn-format">MP3</button>
+                                    <button class="btn-format">WAV</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Advanced Settings -->
+                    <div class="card section">
+                        <div class="group-title">Vitesse & FPS</div>
+                        <div class="dimension-inputs">
+                            <select class="input-field">
+                                <option>30 FPS</option>
+                                <option>60 FPS</option>
+                                <option>24 FPS (Cinéma)</option>
+                            </select>
+                            <select class="input-field">
+                                <option>Vitesse x1</option>
+                                <option>Ralenti x0.5</option>
+                                <option>Accéléré x2</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-cta" id="convert-video-btn">
+                    Lancer l'encodage <i data-lucide="film" size="18"></i>
+                </button>
+            </aside>
+        </main>
+
+        <!-- Résultats -->
+        <div class="card result-card" id="result-card" style="text-align: center; margin-top: 3rem;">
+            <i data-lucide="check-circle" style="color: var(--success); margin-bottom: 1rem;" size="48"></i>
+            <h2 style="margin-bottom: 0.5rem;">Rendu Terminé !</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Votre vidéo a été optimisée et encodée avec
+                succès.</p>
+            <a href="#" class="download-link">
+                <i data-lucide="download"></i> Télécharger la Vidéo
+            </a>
+        </div>
+    </div>
+
+    <script src="../static/js/video.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>

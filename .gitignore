@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venc/
+venv/
+env/
+.env
+ressources/
+# Flask
+instance/
+.webassets-cache
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node/Web
+node_modules/
+dist/
+.DS_Store
+
+# Project specific
+uploads/
+temp/
+static/img/processed/

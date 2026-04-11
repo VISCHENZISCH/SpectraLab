@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Others Eyes | Audio Studio</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- WaveSurfer -->
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+
+    <link rel="stylesheet" href="../static/css/common.css">
+    <link rel="stylesheet" href="../static/css/audio.css">
+</head>
+
+<body>
+    <div class="bg-text">VISCHENZISCH</div>
+    <div class="container">
+        <header class="header-container">
+            <div class="logo">
+                <img src="../static/img/logo.png" alt="Aura Logo" class="logo-img">
+                <span style="font-weight: 800; font-size: 1.9rem;">Others <span
+                        style="color: var(--accent)">Eyes</span></span>
+            </div>
+            <nav>
+                <div class="nav-links">
+                    <a href="index.html">Images</a>
+                    <a href="audio.html" class="active">Audio</a>
+                    <a href="video.html">Vidéo</a>
+                </div>
+            </nav>
+            <div style="width: 180px;"></div>
+        </header>
+
+        <div class="pipeline-header">
+            <h1 class="page-title">Audio <span style="color: var(--accent)">Others Eyes</span></h1>
+            <div class="pipeline-pills">
+                <span class="pill active" data-view="audio-trim">Découpage</span>
+                <span class="pill" data-view="audio-ai">Nettoyage IA</span>
+                <span class="pill" data-view="audio-transcription">Transcription</span>
+                <span class="pill" data-view="audio-export">Export</span>
+            </div>
+        </div>
+
+        <main class="dashboard">
+            <!-- Zone d'Analyse Audio -->
+            <div class="preview-area">
+                <div class="card upload-hero" id="drop-zone-audio" style="min-height: 450px;">
+                    <input type="file" id="audio-input" hidden accept="audio/*">
+
+                    <div id="upload-prompt" style="text-align: center;">
+                        <div class="icon-box">
+                            <i data-lucide="mic" size="32"></i>
+                        </div>
+                        <h3 style="margin-bottom: 0.5rem;">Importer un audio</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Analysé par Aura AI</p>
+                    </div>
+
+                    <div id="audio-preview-container" style="display: none; width: 100%; padding: 2rem;">
+                        <div id="waveform"></div>
+                        <div class="playback-controls">
+                            <button id="play-pause" class="btn-play-circle">
+                                <i data-lucide="play" id="play-icon" size="28"></i>
+                            </button>
+                            <button id="stop-audio" class="btn-play-circle"
+                                style="background: rgba(255,255,255,0.1); color: white;">
+                                <i data-lucide="square" size="24"></i>
+                            </button>
+                        </div>
+
+                        <div class="dimension-inputs">
+                            <div class="input-group">
+                                <label>Début (sec)</label>
+                                <input type="number" id="trim-start" class="input-field" value="0" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label>Fin (sec)</label>
+                                <input type="number" id="trim-end" class="input-field" value="0" step="0.1">
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 3rem;">
+                            <button id="remove-audio" class="btn-format"
+                                style="border-color: rgba(255, 255, 255, 0.1); color: var(--text-muted); padding: 10px 20px;">
+                                <i data-lucide="refresh-cw" size="14"></i> Effacer et recommencer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Audio -->
+            <aside class="panel">
+                <!-- 1. DÉCOUPAGE VIEW -->
+                <div class="pipeline-view active" id="view-audio-trim">
+                    <div class="card section">
+                        <div class="group-title">DÉCOUPAGE PRÉCIS</div>
+                        <div class="dimension-inputs">
+                            <div class="input-group">
+                                <label>Début (sec)</label>
+                                <input type="number" id="trim-start-sidebar" class="input-field" value="0.0" step="0.1">
+                            </div>
+                            <br />
+                            <div class="input-group">
+                                <label>Fin (sec)</label>
+                                <input type="number" id="trim-end-sidebar" class="input-field" value="0.0" step="0.1">
+                            </div>
+                        </div>
+                        <div class="setting-item-col" style="margin-top: 1.5rem;">
+                            <label class="format-label">Point d'écoute</label>
+                            <input type="range" class="range-slider" min="0" max="100" value="0" id="audio-cursor">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. NETTOYAGE IA VIEW -->
+                <div class="pipeline-view" id="view-audio-ai">
+                    <div class="card section">
+                        <div class="group-title" style="color: var(--accent)">INTELLIGENCE ARTIFICIELLE</div>
+                        <div class="setting-item">
+                            <span>Réduction de bruit (DeepClean)</span>
+                            <label class="toggle">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <span>Isolation de la voix</span>
+                            <label class="toggle">
+                                <input type="checkbox">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <span>Normalisation (Loudness)</span>
+                            <label class="toggle">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. TRANSCRIPTION VIEW -->
+                <div class="pipeline-view" id="view-audio-transcription">
+                    <div class="card section">
+                        <div class="group-title">TRANSCRIPTION IA</div>
+                        <div class="setting-item">
+                            <span>Générer transcription (STT)</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="stt-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="format-group" style="margin-top: 1rem;">
+                            <div class="format-label">Langue</div>
+                            <select class="input-field">
+                                <option>Français (Détection auto)</option>
+                                <option>Anglais</option>
+                                <option>Espagnol</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. EXPORT VIEW -->
+                <div class="pipeline-view" id="view-audio-export">
+                    <div class="card section">
+                        <div class="group-title">
+                            <i data-lucide="music" size="14"></i>
+                            FORMAT DE SORTIE
+                        </div>
+                        <div class="format-selection-card">
+                            <div class="format-group">
+                                <div class="format-label">COMPRESSÉ</div>
+                                <div class="format-grid">
+                                    <button class="btn-format active">MP3</button>
+                                    <button class="btn-format">AAC</button>
+                                    <button class="btn-format">OGG</button>
+                                    <button class="btn-format">OPUS</button>
+                                </div>
+                            </div>
+                            <div class="format-group">
+                                <div class="format-label">SANS PERTE</div>
+                                <div class="format-grid">
+                                    <button class="btn-format">WAV</button>
+                                    <button class="btn-format">FLAC</button>
+                                    <button class="btn-format">ALAC</button>
+                                    <button class="btn-format">AIFF</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-item-col" style="margin-top: 1.5rem;">
+                            <div class="format-label">Fréquence</div>
+                            <select class="input-field">
+                                <option>44.1 kHz (Standard)</option>
+                                <option>48 kHz (Pro)</option>
+                                <option>96 kHz (Hi-Res)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-cta" id="convert-audio-btn">
+                    Lancer le traitement <i data-lucide="zap" size="18"></i>
+                </button>
+            </aside>
+        </main>
+
+        <!-- Transcription & Résultats -->
+        <div id="transcription-area" class="card" style="margin-top: 2rem;">
+            <div class="group-title">
+                <i data-lucide="file-text" size="14"></i>
+                Transcription IA
+            </div>
+            <textarea class="transcription-box" id="transcription-text"
+                placeholder="Ici apparaîtra la transcription de votre audio..."></textarea>
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                <button class="btn-choice" style="font-size: 0.7rem; padding: 0.5rem 1rem;">Copier le texte</button>
+            </div>
+        </div>
+
+        <div class="card result-card" id="result-card" style="text-align: center; margin-top: 3rem;">
+            <i data-lucide="check-circle" style="color: var(--success); margin-bottom: 1rem;" size="48"></i>
+            <h2 style="margin-bottom: 0.5rem;">Audio Traité !</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Téléchargez votre segment ou votre
+                transcription.</p>
+            <a href="#" class="download-link">
+                <i data-lucide="download"></i> Télécharger l'Audio
+            </a>
+        </div>
+    </div>
+
+    <script src="../static/js/audio.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>
