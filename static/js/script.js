@@ -40,8 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatButtons = document.querySelectorAll('.btn-format');
     formatButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Unset other active buttons in the same component
-            btn.closest('.format-selection-card').querySelectorAll('.btn-format').forEach(b => b.classList.remove('active'));
+            const card = btn.closest('.format-selection-card');
+            if (!card) return;
+            card.querySelectorAll('.btn-format').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         });
     });
@@ -116,6 +117,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const pills = document.querySelectorAll('.pipeline-pills .pill');
     const views = document.querySelectorAll('.pipeline-view');
 
+    function randomizeInjectionHex() {
+        const chars = '0123456789ABCDEF';
+        document.querySelectorAll('#view-injection .hex-bytes').forEach((span) => {
+            if (span.querySelector('.hex-highlight')) return;
+            let newHex = '';
+            for (let i = 0; i < 8; i++) {
+                newHex += chars[Math.floor(Math.random() * 16)];
+                newHex += chars[Math.floor(Math.random() * 16)];
+                if (i < 7) newHex += ' ';
+            }
+            span.textContent = newHex;
+        });
+    }
+
     pills.forEach(pill => {
         pill.addEventListener('click', () => {
             const targetView = pill.getAttribute('data-view');
@@ -135,15 +150,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cropOverlay) {
                 cropOverlay.style.display = targetView === 'recadrage' ? 'block' : 'none';
             }
+
+            if (targetView === 'injection') {
+                randomizeInjectionHex();
+            }
         });
     });
 
     // Forensics Mock Logic
-    const verifyBtn = document.querySelector('#view-forensique .btn-format');
+    const verifyBtn = document.getElementById('btn-verify-fingerprint');
     if (verifyBtn) {
         verifyBtn.addEventListener('click', () => {
+            verifyBtn.disabled = true;
             verifyBtn.textContent = 'Vérification...';
             setTimeout(() => {
+                verifyBtn.disabled = false;
                 verifyBtn.textContent = 'Correspondance OK';
                 verifyBtn.style.color = 'var(--success)';
                 verifyBtn.style.borderColor = 'var(--success)';
@@ -151,13 +172,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const lsbToggle = document.querySelector('#view-forensique .toggle input');
-    const statusBadge = document.querySelector('.status-badge');
+    const lsbToggle = document.getElementById('lsb-scan-toggle');
+    const statusBadge = document.getElementById('lsb-status-badge');
     if (lsbToggle && statusBadge) {
         lsbToggle.addEventListener('change', () => {
             if (lsbToggle.checked) {
                 statusBadge.textContent = 'Scan en cours...';
                 statusBadge.classList.remove('muted');
+                statusBadge.style.color = '';
                 setTimeout(() => {
                     statusBadge.textContent = 'Aucune anomalie détectée';
                     statusBadge.style.color = 'var(--success)';
@@ -186,4 +208,80 @@ document.addEventListener('DOMContentLoaded', () => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }, 2000);
     });
+
+    // ----------------------------------------------------
+    // ADVANCED HACKING EFFECTS (Console & Hex Editor)
+    // ----------------------------------------------------
+
+    const btnHack = document.getElementById('btn-run-hack');
+    const terminalOutput = document.getElementById('terminal-output');
+    const hackerTerminal = document.getElementById('hacker-terminal');
+
+    function scrollTerminalToBottom() {
+        const el = hackerTerminal || terminalOutput?.parentElement;
+        if (el) el.scrollTop = el.scrollHeight;
+    }
+
+    if (btnHack && terminalOutput) {
+        const fakeCommands = [
+            "> nmap -p- --min-rate=1000 target.sys",
+            "[SYSTEM] Port 22 OPEN ... Brute forcing SSH...",
+            "> hashcat -m 0 hash.txt wordlist.txt",
+            "[SYSTEM] Hash cracked: *********",
+            "> python3 extract_lsb.py --target image.png --channel B",
+            "[!] EXTRACTING HIDDEN PAYLOAD...",
+            "01010011 01000101 01000011 01010010 01000101 01010100",
+            "[SUCCESS] Payload decrypted and loaded."
+        ];
+
+        btnHack.addEventListener('click', () => {
+            btnHack.disabled = true;
+            btnHack.innerHTML = '<i data-lucide="loader" class="spin"></i> Attaque en cours...';
+            lucide.createIcons();
+
+            let cmdIndex = 0;
+            const currentInputLine = document.querySelector('.current-input');
+            if(currentInputLine) currentInputLine.remove();
+
+            function typeCommand() {
+                if (cmdIndex >= fakeCommands.length) {
+                    btnHack.disabled = false;
+                    btnHack.innerHTML = '<i data-lucide="terminal-square"></i> Lancer l\'attaque';
+                    lucide.createIcons();
+                    // Put cursor back
+                    const cursorLine = document.createElement('div');
+                    cursorLine.className = 'terminal-line current-input';
+                    cursorLine.innerHTML = '<span class="cursor-blink"></span>';
+                    terminalOutput.appendChild(cursorLine);
+                    scrollTerminalToBottom();
+                    return;
+                }
+
+                const newLine = document.createElement('div');
+                newLine.className = fakeCommands[cmdIndex].startsWith('>') ? 'terminal-line' : 'terminal-line warning';
+                if(fakeCommands[cmdIndex].startsWith('[SUCCESS]')) newLine.className = 'terminal-line system';
+                
+                terminalOutput.appendChild(newLine);
+                
+                let charIndex = 0;
+                let text = fakeCommands[cmdIndex];
+                
+                function typeChar() {
+                    if (charIndex < text.length) {
+                        newLine.textContent += text.charAt(charIndex);
+                        charIndex++;
+                        scrollTerminalToBottom();
+                        setTimeout(typeChar, Math.random() * 30 + 10);
+                    } else {
+                        cmdIndex++;
+                        setTimeout(typeCommand, 300);
+                    }
+                }
+                typeChar();
+            }
+
+            typeCommand();
+        });
+    }
+
 });

@@ -9,7 +9,9 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Smooch+Sans:wght@100..900&family=Ubuntu:wght@400;600&display=swap"
+        rel="stylesheet">
 
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -22,8 +24,7 @@
     <div class="container">
         <header class="header-container">
             <div class="logo">
-                <img src="../static/img/logo.png" alt="Aura Logo" class="logo-img">
-                <span style="font-weight: 800; font-size: 1.9rem;">Others <span
+                <span style="font-weight: 800; font-size:8rem;">Others <span
                         style="color: var(--accent)">Eyes</span></span>
             </div>
             <nav>
@@ -37,12 +38,14 @@
         </header>
 
         <div class="pipeline-header">
-            <h1 class="page-title">Image <span style="color: var(--accent)">Others Eyes</span></h1>
             <div class="pipeline-pills">
                 <span class="pill active" data-view="compression">Compression</span>
                 <span class="pill" data-view="recadrage">Recadrage</span>
                 <span class="pill" data-view="effets">Effets</span>
                 <span class="pill" data-view="forensique">Forensique</span>
+                <span class="pill" data-view="deepscan">Deep Scan</span>
+                <span class="pill" data-view="injection">Injection</span>
+                <span class="pill" data-view="console">Console</span>
             </div>
         </div>
 
@@ -255,16 +258,11 @@
                                 <code>e3b0c44298fc...</code>
                                 <i data-lucide="copy" size="10"></i>
                             </div>
-                            <div style="text-align: center; margin-top: 3rem;">
-                                <button id="remove-img" class="btn-format"
-                                    style="border-color: rgba(255, 255, 255, 0.1); color: var(--text-muted); padding: 10px 20px;">
-                                    <i data-lucide="refresh-cw" size="14"></i> Effacer et recommencer
-                                </button>
-                            </div>
                             <div class="verify-group" style="margin-top: 1rem;">
                                 <input type="text" class="input-field" placeholder="Coller hash de référence..."
                                     style="margin-bottom: 0.5rem;">
-                                <button class="btn-format" style="width: 100%; font-size: 0.75rem;">Vérifier
+                                <button type="button" class="btn-format" id="btn-verify-fingerprint"
+                                    style="width: 100%; font-size: 0.75rem;">Vérifier
                                     l'empreinte</button>
                             </div>
                         </div>
@@ -297,11 +295,11 @@
                             <div class="setting-item">
                                 <span>Scanner les canaux LSB</span>
                                 <label class="toggle">
-                                    <input type="checkbox">
+                                    <input type="checkbox" id="lsb-scan-toggle">
                                     <span class="slider round"></span>
                                 </label>
                             </div>
-                            <div class="status-badge muted">Aucune anomalie détectée</div>
+                            <div class="status-badge muted" id="lsb-status-badge">Aucune anomalie détectée</div>
                         </div>
 
                         <!-- Magic Bytes -->
@@ -323,10 +321,96 @@
                             </table>
                         </div>
                     </div>
+                </div>
 
-                    <button class="btn-cta" id="convert-btn">
-                        Convertir l'image <i data-lucide="arrow-right" size="18"></i>
+                <!-- 5. DEEP SCAN VIEW -->
+                <div class="pipeline-view" id="view-deepscan">
+
+                    <div class="card section">
+                        <div class="group-title">EXTRACTION EXIF PROFONDE</div>
+                        <div class="setting-item-col" style="font-family: monospace; font-size: 0.75rem;">
+                            <div class="label-row"><span>Make</span> <span class="value">SONY</span></div>
+                            <div class="label-row"><span>Model</span> <span class="value">ILCE-7M3</span></div>
+                            <div class="label-row"><span>Software</span> <span class="value"
+                                    style="color: var(--error)">Adobe Photoshop 24.1</span></div>
+                            <div class="label-row"><span>GPSLatitude</span> <span class="value">48 deg 52' 5.12"
+                                    N</span></div>
+                            <div class="label-row"><span>GPSLongitude</span> <span class="value">2 deg 19' 59.20"
+                                    E</span></div>
+                        </div>
+                        <button class="btn-format" style="width: 100%;"><i data-lucide="trash-2" size="14"></i> Purger
+                            EXIF</button>
+                    </div>
+                </div>
+
+                <!-- 6. INJECTION VIEW (STEGO) -->
+                <div class="pipeline-view" id="view-injection">
+                    <div class="card section">
+                        <div class="group-title"><i data-lucide="syringe" size="14"></i> STÉGANOGRAPHIE (LSB)</div>
+                        <div class="setting-item-col">
+                            <label style="font-size: 0.7rem; color: var(--text-secondary);">CHARGE UTILE
+                                (TXT/JSON)</label>
+                            <textarea class="input-field" rows="3" placeholder='{"target":"classified", "id":"alpha-7"}'
+                                style="font-family: monospace; resize: none;"></textarea>
+                        </div>
+                        <div class="setting-item">
+                            <span>Canal cible</span>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <span class="badge"
+                                    style="background: rgba(255,0,0,0.2); color: #ff5252; padding: 4px 8px;">R</span>
+                                <span class="badge"
+                                    style="background: rgba(0,255,0,0.2); color: #00ff6e; padding: 4px 8px;">G</span>
+                                <span class="badge active"
+                                    style="background: rgba(0,0,255,0.2); color: #4f7bff; border: 1px solid #4f7bff; padding: 4px 8px;">B</span>
+                            </div>
+                        </div>
+                        <button class="btn-format"
+                            style="width: 100%; border-color: var(--warning); color: var(--warning);">Créer le vecteur
+                            (Injecter)</button>
+                    </div>
+
+                    <div class="card section">
+                        <div class="group-title">EDITEUR HEXADÉCIMAL</div>
+                        <div class="hex-editor">
+                            <div class="hex-row"><span class="hex-offset">0x0000</span> <span class="hex-bytes">89 50 4E
+                                    47 0D 0A 1A 0A</span> <span class="hex-ascii">.PNG....</span></div>
+                            <div class="hex-row"><span class="hex-offset">0x0008</span> <span class="hex-bytes">00 00 00
+                                    0D 49 48 44 52</span> <span class="hex-ascii">....IHDR</span></div>
+                            <div class="hex-row"><span class="hex-offset">0x0010</span> <span class="hex-bytes">00 00 07
+                                    80 00 00 04 38</span> <span class="hex-ascii">.......8</span></div>
+                            <div class="hex-row"><span class="hex-offset">0x0018</span> <span class="hex-bytes">08 06 00
+                                    00 00 <span class="hex-highlight">E8</span> <span class="hex-highlight">D3</span>
+                                    <span class="hex-highlight">C1</span></span> <span class="hex-ascii">.....<span
+                                        class="glitch" data-text="[X]">[X]</span></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. CONSOLE VIEW -->
+                <div class="pipeline-view" id="view-console">
+                    <div class="card section" style="padding: 0;">
+                        <div class="terminal-window" id="hacker-terminal">
+                            <div class="terminal-header">
+                                <span>Root@Others-Eyes:~#</span>
+                                <span><i data-lucide="wifi" size="14"></i> Sec-Link</span>
+                            </div>
+                            <div class="terminal-content" id="terminal-output">
+                                <div class="terminal-line system">Initalizing neuro-link protocol...</div>
+                                <div class="terminal-line system">Bypassing standard security models.</div>
+                                <div class="terminal-line warning">[!] WARNING: Unauthorized execution detected.</div>
+                                <div class="terminal-line current-input"><span class="cursor-blink"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-format" id="btn-run-hack"
+                        style="width: 100%; margin-top: 1rem; border-color: var(--error); color: var(--error);">
+                        <i data-lucide="terminal-square" size="14"></i> Lancer l'attaque
                     </button>
+                </div>
+
+                <button class="btn-cta" id="convert-btn">
+                    Convertir l'image <i data-lucide="arrow-right" size="18"></i>
+                </button>
             </aside>
         </main>
 
