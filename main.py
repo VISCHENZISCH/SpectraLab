@@ -91,7 +91,7 @@ def redimensionnerImage():
 def menu():
     while True:
         print("\n" + ":"*40)
-        print("      CONVERTISSEUR D'IMAGES PRO")
+        print("           SPECTRALAB")
         print(":"*40)
         print("1. Convertir le format d'une image")
         print("2. Redimensionner une image (Resize)")

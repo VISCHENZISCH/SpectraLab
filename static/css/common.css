@@ -1,5 +1,5 @@
 /* =========================================================
-   OTHERS-EYES — Design System v2.0
+   SPECTRALAB — Design System v2.0
    Palette : Noir · Gris · Blanc · Rouge · Vert Hacker
    ========================================================= */
 :root {
@@ -56,8 +56,9 @@
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
     --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.6);
-    --font-sans: 'Smooch Sans', system-ui, sans-serif;
-    --font-mono: 'Courier New', Courier, monospace;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-brand: 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
 }
 
 /* ── Reset ── */
@@ -68,7 +69,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: var(--font-sans);
-    letter-spacing: 0.05rem;
+    letter-spacing: -0.01rem;
 }
 
 html {
@@ -94,7 +95,7 @@ body {
     min-height: 100vh;
     padding-bottom: 5rem;
     -webkit-font-smoothing: antialiased;
-    font-size: 1.35rem;
+    font-size: 0.95rem;
 }
 
 /* ── Watermark ── */
@@ -141,6 +142,7 @@ header {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    font-family: var(--font-brand);
 }
 
 
@@ -155,7 +157,7 @@ nav {
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding: 15px;
+    padding: 8px 12px;
     border-radius: var(--radius-pill);
     gap: 2px;
     border: 2px solid var(--border);
@@ -165,13 +167,13 @@ nav {
 .nav-links a {
     text-decoration: none;
     color: var(--grey-400);
-    padding: 0.8rem 1.4rem;
+    padding: 0.6rem 1.2rem;
     border-radius: var(--radius-pill);
     transition: var(--transition);
     font-weight: 700;
     text-transform: uppercase;
-    font-size: 1rem;
-    letter-spacing: 0.2rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.15rem;
 }
 
 .nav-links a.active {
@@ -226,9 +228,9 @@ nav {
 }
 
 .pill {
-    font-size: 1rem;
+    font-size: 0.75rem;
     font-weight: 800;
-    padding: 0.8rem 1.6rem;
+    padding: 0.6rem 1.2rem;
     border-radius: var(--radius);
     color: var(--text-secondary);
     white-space: nowrap;
@@ -442,7 +444,7 @@ input:checked+.slider:before {
     border: none;
     padding: 1rem 1.25rem;
     border-radius: var(--radius);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 800;
     cursor: pointer;
     display: flex;
@@ -870,7 +872,7 @@ textarea.input-field {
     background: #5e5c64;
     /* GNOME header grey */
     border-bottom: 1px solid #171421;
-    font-family: 'Ubuntu', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 700;
     text-transform: none;
     font-size: 0.8rem;
@@ -897,6 +899,8 @@ textarea.input-field {
     gap: 4px;
     padding: 1.25rem;
     background: transparent;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
     overflow-y: auto;
     /* Scroll only the content */
     flex: 1;
@@ -916,7 +920,7 @@ textarea.input-field {
 }
 
 .terminal-line::before {
-    content: 'admin@others-eyes:~$ ';
+    content: 'admin@spectralab:~$ ';
     color: #2ec27e;
     /* Green limited to the prompt */
     font-weight: 700;
