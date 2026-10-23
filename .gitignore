@@ -25,3 +25,7 @@ dist/
 uploads/
 temp/
 static/img/processed/
+
+# Outils embarqués (ExifTool, FFmpeg) pour le packaging
+bin/
+*.egg-info/
