@@ -130,6 +130,11 @@ def submit(
     return Job(bridge)
 
 
+def pending_count() -> int:
+    """Nombre de traitements lancés dont le résultat n'est pas encore arrivé."""
+    return len(_pending)
+
+
 def cancel_all() -> None:
     """Annule tous les travaux en cours (fermeture de la fenêtre)."""
     for bridge in list(_pending):

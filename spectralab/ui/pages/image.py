@@ -24,8 +24,8 @@ from spectralab.core.activity import ActivityLog
 from spectralab.core.image_ops import ImageResult
 from spectralab.core.media_info import format_size
 
-from .. import jobs
-from ..widgets import Card, DropZone, IconChip, StatusLine, button, label, page_header
+from .. import jobs, session, theme
+from ..widgets import Card, DropZone, IconChip, StatusLine, button, label, page_header, rounded_pixmap
 
 # Plafond mémoire du décodage de l'aperçu (Mo) : protège contre les images géantes.
 QImageReader.setAllocationLimit(512)
@@ -55,7 +55,7 @@ class _Preview(QLabel):
             self.size() * ratio, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
         )
         scaled.setDevicePixelRatio(ratio)
-        self.setPixmap(scaled)
+        self.setPixmap(rounded_pixmap(scaled))
 
 
 class ImagePage(QWidget):
@@ -66,13 +66,13 @@ class ImagePage(QWidget):
         self._size = QSize()
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(8, 8, 8, 8)
-        root.setSpacing(16)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(theme.GAP)
         change = button("Choisir une image", icon_name="folder")
         root.addWidget(page_header("Image", "Convertissez et redimensionnez sans perte de contrôle sur vos métadonnées.", change))
 
         body = QHBoxLayout()
-        body.setSpacing(16)
+        body.setSpacing(theme.GAP)
         root.addLayout(body, 1)
 
         # ── Aperçu ──
@@ -96,12 +96,12 @@ class ImagePage(QWidget):
 
         # ── Réglages ──
         side = QVBoxLayout()
-        side.setSpacing(16)
+        side.setSpacing(theme.GAP)
 
         convert = Card()
         convert.setFixedWidth(340)
         head = QHBoxLayout()
-        head.addWidget(IconChip("refresh", "lime", 40))
+        head.addWidget(IconChip("refresh", "accent", 40))
         head.addWidget(label("Conversion", "CardTitle"), 1)
         convert.body.addLayout(head)
         self._format = QComboBox()
@@ -183,6 +183,7 @@ class ImagePage(QWidget):
         self._width.blockSignals(False)
         self._height.setValue(image.height())
         self._activity.record("analysis")
+        session.recent.add(path, "image")
         self._status.show_message("Image chargée.", "info")
         self._set_enabled(True)
 

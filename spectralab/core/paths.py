@@ -8,6 +8,7 @@ jamais un fichier tronqué portant un nom normal.
 from __future__ import annotations
 
 import os
+import re
 import secrets
 from pathlib import Path
 
@@ -70,3 +71,23 @@ def publish(tmp: Path, dest: Path) -> None:
         os.replace(tmp, dest)
     else:
         tmp.unlink()
+
+
+_COPY_NUMBER = re.compile(r" \(\d+\)$")
+
+
+def publish_unique(tmp: Path, dest: Path) -> Path:
+    """Publie ``tmp`` sous ``dest`` ou, si ce nom vient d'être pris, sous le nom libre suivant.
+
+    Deux traitements lancés presque en même temps peuvent choisir le même nom
+    libre ; le second prend alors « nom (2) », « nom (3) »… au lieu d'échouer.
+    Rien n'est jamais écrasé. Renvoie le chemin effectivement utilisé.
+    """
+    base = dest.with_name(_COPY_NUMBER.sub("", dest.stem) + dest.suffix)
+    for _ in range(100):
+        try:
+            publish(tmp, dest)
+            return dest
+        except FileExistsError:
+            dest = unique_path(base)
+    raise FileExistsError(f"Aucun nom libre pour {base.name}.")

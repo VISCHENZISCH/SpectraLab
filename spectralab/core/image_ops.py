@@ -10,7 +10,7 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 from .cancel import CancelToken, check
-from .paths import checked_file, derived_path, publish, temp_sibling
+from .paths import checked_file, derived_path, publish_unique, temp_sibling
 
 MAX_DIMENSION = 20_000
 
@@ -94,8 +94,8 @@ def _save(
     quality: int,
     keep_metadata: bool,
     cancel: CancelToken | None,
-) -> tuple[int, int]:
-    """Écrit sous un nom temporaire, vérifie, puis publie. Renvoie les dimensions relues."""
+) -> tuple[Path, tuple[int, int]]:
+    """Écrit sous un nom temporaire, vérifie, puis publie. Renvoie le chemin final et les dimensions relues."""
     params: dict[str, object] = {}
     if fmt in _LOSSY:
         params["quality"] = max(1, min(100, quality))
@@ -111,10 +111,10 @@ def _save(
         check(cancel)
         size = _verify(tmp, fmt)
         check(cancel)
-        publish(tmp, dest)
+        dest = publish_unique(tmp, dest)
     finally:
         tmp.unlink(missing_ok=True)
-    return size
+    return dest, size
 
 
 def _verify(path: Path, fmt: str) -> tuple[int, int]:
@@ -154,7 +154,7 @@ def convert_image(
     with _open(path) as source:
         check(cancel)
         image = _prepare(source, fmt)
-        dimensions = _save(image, source, dest, fmt, quality, keep_metadata, cancel)
+        dest, dimensions = _save(image, source, dest, fmt, quality, keep_metadata, cancel)
     return ImageResult(dest, path.stat().st_size, dest.stat().st_size, dimensions)
 
 
@@ -184,5 +184,5 @@ def resize_image(
         check(cancel)
         ext = path.suffix if fmt == source.format else ".png"
         dest = derived_path(path, f"_{width}x{height}", ext)
-        dimensions = _save(resized, source, dest, fmt, quality, keep_metadata, cancel)
+        dest, dimensions = _save(resized, source, dest, fmt, quality, keep_metadata, cancel)
     return ImageResult(dest, path.stat().st_size, dest.stat().st_size, dimensions)

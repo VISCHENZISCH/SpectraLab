@@ -19,7 +19,6 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMessageBox,
-    QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
     QWidget,
@@ -31,8 +30,8 @@ from spectralab.core.cancel import CancelToken
 from spectralab.core.metadata import FileMetadata, Severity
 from spectralab.core.paths import derived_path
 
-from .. import jobs, theme
-from ..widgets import Card, DropZone, IconChip, PillBar, StatusLine, button, label, page_header
+from .. import jobs, session, theme
+from ..widgets import Card, DropZone, IconChip, PillBar, RoundedTree, StatusLine, button, label, page_header
 
 _MAX_SHOWN_VALUE = 400
 _MAX_TOOLTIP = 4000
@@ -95,8 +94,8 @@ class TagDialog(QDialog):
         self.setWindowTitle("Modifier un champ")
         self.setMinimumWidth(420)
         form = QFormLayout(self)
-        form.setSpacing(12)
-        form.setContentsMargins(22, 22, 22, 22)
+        form.setSpacing(theme.ROW)
+        form.setContentsMargins(24, 24, 24, 24)
 
         self.tag = QComboBox()
         self.tag.setEditable(True)
@@ -143,8 +142,8 @@ class MetadataPage(QWidget):
 
         add = button("Ajouter des fichiers", "primary", "plus")
         root = QVBoxLayout(self)
-        root.setContentsMargins(8, 8, 8, 8)
-        root.setSpacing(16)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(theme.GAP)
         root.addWidget(
             page_header(
                 "Métadonnées",
@@ -154,7 +153,7 @@ class MetadataPage(QWidget):
         )
 
         body = QHBoxLayout()
-        body.setSpacing(16)
+        body.setSpacing(theme.GAP)
         root.addLayout(body, 1)
 
         # ── Fichiers ──
@@ -193,7 +192,7 @@ class MetadataPage(QWidget):
         self._search.textChanged.connect(lambda _: self._render())
         top.addWidget(self._search)
         fields_card.body.addLayout(top)
-        self._tree = QTreeWidget()
+        self._tree = RoundedTree()
         self._tree.setHeaderLabels(["CHAMP", "VALEUR"])
         self._tree.setColumnWidth(0, 230)
         self._tree.setUniformRowHeights(True)
@@ -207,7 +206,7 @@ class MetadataPage(QWidget):
 
         # ── Confidentialité et actions ──
         side = QVBoxLayout()
-        side.setSpacing(16)
+        side.setSpacing(theme.GAP)
         privacy = Card()
         privacy.setFixedWidth(320)
         head = QHBoxLayout()
@@ -272,6 +271,8 @@ class MetadataPage(QWidget):
         def done(results: list[FileMetadata]) -> None:
             for meta in results:
                 self._meta[meta.path] = meta
+                if not meta.error:
+                    session.recent.add(meta.path, "metadata")
             self._activity.record("analysis", sum(1 for m in results if not m.error))
             self._refresh_items()
             self._set_busy(False)
@@ -294,7 +295,7 @@ class MetadataPage(QWidget):
                 item.setToolTip(f"{meta.path}\n{meta.error}")
             else:
                 level = metadata.risk_level(meta.findings())
-                item.setIcon(_dot(theme.SEVERITY_COLORS[level] if level else theme.LIME))
+                item.setIcon(_dot(theme.SEVERITY_COLORS[level] if level else theme.ACCENT))
 
     def _remove_current(self) -> None:
         row = self._list.currentRow()
@@ -367,7 +368,7 @@ class MetadataPage(QWidget):
         level = metadata.risk_level(findings)
         if level is None:
             self._risk.setText("Aucun risque")
-            self._risk.setStyleSheet(f"color: {theme.LIME};")
+            self._risk.setStyleSheet(f"color: {theme.ACCENT};")
             self._risk_hint.setText(f"{len(meta.embedded)} champ(s) intégré(s), aucun jugé sensible.")
             return
         self._risk.setText(_RISK_TEXT[level])
@@ -376,9 +377,6 @@ class MetadataPage(QWidget):
         self._risk_hint.setText(f"{count} champ(s) sensible(s) sur {len(meta.embedded)} intégré(s).")
         for finding in findings:
             row = QHBoxLayout()
-            dot = label("●")
-            dot.setStyleSheet(f"color: {theme.SEVERITY_COLORS[finding.severity]};")
-            row.addWidget(dot)
             row.addWidget(label(finding.label), 1)
             row.addWidget(label(str(len(finding.entries)), "Badge"))
             self._findings.addLayout(row)
