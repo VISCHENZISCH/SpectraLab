@@ -4,6 +4,9 @@ Les arguments sont transmis à ExifTool par l'entrée standard (``-@ -``) et
 non par la ligne de commande : les noms de fichiers et valeurs non ASCII
 passent correctement sous Windows, et aucune valeur ne peut être
 interprétée comme une option.
+
+Toute écriture passe par un fichier temporaire relu par ExifTool avant de
+prendre sa place : l'original n'est remplacé que par un fichier vérifié.
 """
 
 from __future__ import annotations
@@ -16,7 +19,8 @@ from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
 
-from .paths import checked_file, derived_path
+from .cancel import CancelToken, check
+from .paths import checked_file, derived_path, publish, temp_sibling
 from .tools import ToolError, first_line, run_tool
 
 # Groupes décrivant le fichier sur le disque ou calculés par ExifTool :
@@ -127,7 +131,7 @@ def validate_tag(tag: str) -> str:
     return tag
 
 
-def _exiftool(args: list[str], timeout: float) -> tuple[int, bytes, bytes]:
+def _exiftool(args: list[str], timeout: float, cancel: CancelToken | None = None) -> tuple[int, bytes, bytes]:
     for arg in args:
         if _FORBIDDEN_CHARS.search(arg):
             raise ValueError("Les retours à la ligne et caractères nuls ne sont pas acceptés.")
@@ -137,6 +141,7 @@ def _exiftool(args: list[str], timeout: float) -> tuple[int, bytes, bytes]:
         ["-charset", "filename=utf8", "-@", "-"],
         stdin=payload,
         timeout=timeout,
+        cancel=cancel,
     )
     return proc.returncode, proc.stdout, proc.stderr
 
@@ -153,12 +158,17 @@ def _same_file_key(path: str | Path) -> str:
     return os.path.normcase(os.path.abspath(path))
 
 
-def read_metadata(paths: Iterable[str | Path], *, timeout: float = 120) -> list[FileMetadata]:
+def read_metadata(
+    paths: Iterable[str | Path],
+    *,
+    timeout: float = 120,
+    cancel: CancelToken | None = None,
+) -> list[FileMetadata]:
     """Lit les métadonnées de plusieurs fichiers en un seul appel à ExifTool."""
     files = [checked_file(p) for p in paths]
     if not files:
         return []
-    _, stdout, stderr = _exiftool(["-json", "-G1", "-a", "-s", *map(str, files)], timeout)
+    _, stdout, stderr = _exiftool(["-json", "-G1", "-a", "-s", *map(str, files)], timeout, cancel)
     try:
         records = json.loads(stdout.decode("utf-8", "replace") or "[]")
     except ValueError as exc:
@@ -178,27 +188,57 @@ def read_metadata(paths: Iterable[str | Path], *, timeout: float = 120) -> list[
         error = record.pop("ExifTool:Error", None)
         entries = []
         for key, value in record.items():
-            group, _, tag = key.rpartition(":")
+            group, _, tag = str(key).rpartition(":")
             entries.append(Entry(group, tag, _stringify(value)))
         results.append(FileMetadata(path, tuple(entries), str(error) if error else None))
     return results
 
 
-def _write(args: list[str], timeout: float) -> None:
-    code, stdout, stderr = _exiftool(args, timeout)
-    summary = stdout.decode("utf-8", "replace")
-    if code != 0 or "weren't updated" in summary or "weren't created" in summary:
-        raise ToolError(first_line(stderr, first_line(stdout, "ExifTool n'a pas pu écrire le fichier.")))
+def _file_type(meta: FileMetadata) -> str | None:
+    return next((e.value for e in meta.entries if e.tag == "FileType"), None)
 
 
-def _target_args(src: Path, output: Path | None) -> tuple[list[str], Path]:
-    if output is None:
-        # ExifTool écrit un fichier temporaire puis remplace l'original.
-        return ["-overwrite_original"], src
-    target = Path(output).resolve()
-    if target.exists():
+def _verify(src: Path, written: Path, timeout: float, cancel: CancelToken | None) -> None:
+    """Le fichier produit doit être lisible par ExifTool et du même type que la source."""
+    if not written.is_file() or written.stat().st_size == 0:
+        raise ToolError("ExifTool n'a produit aucun fichier.")
+    before, after = read_metadata([src, written], timeout=timeout, cancel=cancel)
+    if after.error:
+        raise ToolError(f"Le fichier produit est invalide : {after.error}")
+    if _file_type(before) != _file_type(after):
+        raise ToolError("Le fichier produit n'a plus le même type que l'original.")
+
+
+def _write(
+    args: list[str],
+    src: Path,
+    output: Path | None,
+    timeout: float,
+    cancel: CancelToken | None,
+) -> Path:
+    """Écrit dans un fichier temporaire, le vérifie, puis le publie.
+
+    ``output=None`` remplace l'original, mais seulement une fois la copie
+    vérifiée ; sinon ``output`` ne doit pas exister et ne sera jamais écrasé.
+    """
+    target = src if output is None else Path(output).resolve()
+    if output is not None and target.exists():
         raise FileExistsError(f"{target.name} existe déjà.")
-    return ["-o", str(target)], target
+    tmp = temp_sibling(target)
+    try:
+        code, stdout, stderr = _exiftool([*args, "-o", str(tmp), str(src)], timeout, cancel)
+        summary = stdout.decode("utf-8", "replace")
+        if code != 0 or "weren't updated" in summary or "weren't created" in summary:
+            raise ToolError(first_line(stderr, first_line(stdout, "ExifTool n'a pas pu écrire le fichier.")))
+        _verify(src, tmp, timeout, cancel)
+        check(cancel)
+        if output is None:
+            os.replace(tmp, src)
+        else:
+            publish(tmp, target)
+    finally:
+        tmp.unlink(missing_ok=True)
+    return target
 
 
 def strip_metadata(
@@ -207,6 +247,7 @@ def strip_metadata(
     output: Path | None = None,
     keep_technical: bool = True,
     timeout: float = 300,
+    cancel: CancelToken | None = None,
 ) -> Path:
     """Supprime les métadonnées. ``output=None`` modifie l'original.
 
@@ -217,14 +258,12 @@ def strip_metadata(
     args = ["-all="]
     if keep_technical:
         args += ["-tagsFromFile", "@", "-ColorSpaceTags", "-Orientation"]
-    target_args, target = _target_args(src, output)
-    _write([*args, *target_args, str(src)], timeout)
-    return target
+    return _write(args, src, output, timeout, cancel)
 
 
-def clean_copy(path: str | Path, *, keep_technical: bool = True) -> Path:
+def clean_copy(path: str | Path, *, keep_technical: bool = True, cancel: CancelToken | None = None) -> Path:
     src = checked_file(path)
-    return strip_metadata(src, output=derived_path(src, "_clean"), keep_technical=keep_technical)
+    return strip_metadata(src, output=derived_path(src, "_clean"), keep_technical=keep_technical, cancel=cancel)
 
 
 def write_tags(
@@ -233,12 +272,11 @@ def write_tags(
     *,
     output: Path | None = None,
     timeout: float = 120,
+    cancel: CancelToken | None = None,
 ) -> Path:
     """Écrit des champs. Une valeur vide supprime le champ."""
     if not tags:
         raise ValueError("Aucun champ à écrire.")
     src = checked_file(path)
     args = [f"-{validate_tag(tag)}={value}" for tag, value in tags.items()]
-    target_args, target = _target_args(src, output)
-    _write([*args, *target_args, str(src)], timeout)
-    return target
+    return _write(args, src, output, timeout, cancel)

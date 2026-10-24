@@ -112,14 +112,69 @@ QLabel[chip="violet"] {{ background: rgba(158,140,255,60); border-radius: 14px; 
 
 /* ── Barre latérale ── */
 QFrame#Sidebar {{
-    background: rgba(13,14,20,235);
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgba(18,19,28,240), stop:1 rgba(10,11,16,240));
     border: 1px solid rgba(255,255,255,18);
     border-radius: 28px;
 }}
-QToolButton#NavButton {{ border: none; border-radius: 16px; padding: 12px; }}
-QToolButton#NavButton:hover {{ background: rgba(255,255,255,16); }}
-QToolButton#NavButton:checked {{ background: rgba(210,243,107,34); }}
+QLabel#Brand {{ font-family: {display}; font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }}
+QLabel#BrandSub {{ color: {TEXT_3}; font-size: 10px; letter-spacing: 1px; }}
+QLabel#NavSection {{
+    color: {TEXT_3}; font-size: 9px; font-weight: 700; letter-spacing: 1.8px; padding: 10px 14px 4px;
+}}
+QToolButton#NavButton {{
+    border: none; border-radius: 14px; padding: 10px 14px; text-align: left;
+    color: {TEXT_2}; font-size: 13px; font-weight: 500;
+}}
+QToolButton#NavButton:hover {{ background: rgba(255,255,255,14); color: {TEXT}; }}
+QToolButton#NavButton:checked {{
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 rgba(210,243,107,48), stop:1 rgba(210,243,107,8));
+    color: {TEXT}; font-weight: 600;
+}}
 QToolButton#NavButton:focus {{ outline: none; border: 1px solid rgba(210,243,107,120); }}
+
+/* ── Panneaux d'analyse (spectre, graphiques) ── */
+QFrame[card="panel"] {{
+    background: rgba(6,7,12,215);
+    border: 1px solid rgba(255,255,255,22);
+    border-radius: 18px;
+}}
+QLabel#Readout {{
+    font-family: {mono}; font-size: 11px; color: {TEXT_2};
+    background: rgba(0,0,0,120); border-radius: 8px; padding: 4px 8px;
+}}
+QLabel#Timecode {{ font-family: {mono}; font-size: 20px; font-weight: 500; }}
+QPlainTextEdit, QTextEdit {{
+    background: rgba(0,0,0,110); border: 1px solid rgba(255,255,255,22); border-radius: 12px;
+    padding: 8px; font-family: {mono}; font-size: 12px; selection-background-color: {VIOLET};
+}}
+QPushButton[variant="round"] {{
+    min-width: 44px; max-width: 44px; min-height: 44px; max-height: 44px;
+    padding: 0; border-radius: 22px; background: {LIME}; border: none;
+}}
+QPushButton[variant="round"]:hover {{ background: #DDF88A; }}
+QPushButton[variant="round"]:disabled {{ background: rgba(210,243,107,60); }}
+QPushButton[variant="ghost"] {{ background: transparent; border: none; padding: 6px 10px; }}
+QPushButton[variant="ghost"]:hover {{ background: rgba(255,255,255,16); }}
+
+/* ── Onglets ── */
+QTabWidget::pane {{ border: none; }}
+QTabBar {{ qproperty-drawBase: 0; }}
+QTabBar::tab {{
+    background: rgba(255,255,255,10); color: {TEXT_2}; border: 1px solid rgba(255,255,255,16);
+    border-radius: 14px; padding: 7px 16px; margin-right: 6px; font-weight: 500;
+}}
+QTabBar::tab:hover {{ color: {TEXT}; background: rgba(255,255,255,18); }}
+QTabBar::tab:selected {{ background: {TEXT}; color: {INK}; border-color: {TEXT}; font-weight: 600; }}
+
+/* ── Tableaux ── */
+QTableWidget {{
+    background: transparent; border: none; gridline-color: rgba(255,255,255,12);
+    selection-background-color: rgba(158,140,255,60); selection-color: {TEXT}; outline: none;
+}}
+QTableWidget::item {{ padding: 4px 6px; }}
+QTableCornerButton::section {{ background: transparent; border: none; }}
 
 /* ── Boutons ── */
 QPushButton {{
@@ -141,11 +196,11 @@ QPushButton[variant="pill"] {{
 QPushButton[variant="pill"]:checked {{ background: {TEXT}; color: {INK}; border-color: {TEXT}; }}
 
 /* ── Champs ── */
-QLineEdit, QComboBox, QSpinBox {{
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {{
     background: rgba(255,255,255,12); border: 1px solid rgba(255,255,255,26);
     border-radius: 12px; padding: 8px 12px; selection-background-color: {VIOLET};
 }}
-QLineEdit:focus, QComboBox:focus, QSpinBox:focus {{ border-color: {LIME}; }}
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {{ border-color: {LIME}; }}
 /* Champ texte interne des listes éditables et compteurs : pas de second cadre. */
 QComboBox QLineEdit {{ background: transparent; border: none; padding: 0; }}
 QAbstractSpinBox QLineEdit {{ background: transparent; border: none; padding: 0; }}
@@ -168,7 +223,7 @@ QSlider::handle:horizontal {{
 }}
 
 /* ── Listes et arbres ── */
-QListWidget, QTreeWidget {{
+QListWidget, QTreeWidget, QTableWidget {{
     background: transparent; border: none; outline: none;
 }}
 QListWidget::item {{ padding: 10px 12px; border-radius: 12px; margin: 2px 0; }}

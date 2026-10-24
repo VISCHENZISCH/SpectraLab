@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field
 from fractions import Fraction
 from pathlib import Path
 
+from .cancel import CancelToken
 from .paths import checked_file
 from .tools import ToolError, first_line, run_tool
 
@@ -17,6 +19,7 @@ class Stream:
     kind: str
     codec: str
     details: str
+    codec_name: str = ""  # identifiant court de FFmpeg (« h264 », « av1 »…)
 
 
 @dataclass(frozen=True)
@@ -36,17 +39,19 @@ class MediaInfo:
 
 def _number(value: object, kind: type[int] | type[float]) -> int | float | None:
     try:
-        return kind(value)  # type: ignore[arg-type]
-    except (TypeError, ValueError):
+        number = kind(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError, OverflowError):
         return None
+    # « nan », « inf » ou une valeur négative ne décrivent aucun média réel.
+    return number if math.isfinite(number) and number >= 0 else None
 
 
 def _frame_rate(raw: object) -> float | None:
     try:
-        rate = Fraction(str(raw))
-    except (ValueError, ZeroDivisionError):
+        rate = float(Fraction(str(raw)))
+    except (ValueError, ZeroDivisionError, OverflowError):
         return None
-    return float(rate) if rate > 0 else None
+    return rate if math.isfinite(rate) and rate > 0 else None
 
 
 def _describe(stream: dict[str, object]) -> str:
@@ -70,7 +75,11 @@ def _describe(stream: dict[str, object]) -> str:
     return " · ".join(parts)
 
 
-def probe(path: str | Path, *, timeout: float = 60) -> MediaInfo:
+def _dict(value: object) -> dict[str, object]:
+    return value if isinstance(value, dict) else {}
+
+
+def probe(path: str | Path, *, timeout: float = 60, cancel: CancelToken | None = None) -> MediaInfo:
     src = checked_file(path)
     # Le préfixe « file: » empêche FFmpeg d'interpréter un nom de fichier
     # comme un protocole (« concat: », « http: »…).
@@ -78,6 +87,7 @@ def probe(path: str | Path, *, timeout: float = 60) -> MediaInfo:
         "ffprobe",
         ["-v", "error", "-print_format", "json", "-show_format", "-show_streams", f"file:{src}"],
         timeout=timeout,
+        cancel=cancel,
     )
     if proc.returncode != 0:
         raise ToolError(first_line(proc.stderr, "Fichier illisible par FFmpeg."))
@@ -86,17 +96,21 @@ def probe(path: str | Path, *, timeout: float = 60) -> MediaInfo:
     except ValueError as exc:
         raise ToolError("Réponse de ffprobe illisible.") from exc
 
-    fmt = data.get("format") or {}
+    # Le contenu décrit un fichier potentiellement piégé : aucune forme n'est supposée.
+    data = _dict(data)
+    fmt = _dict(data.get("format"))
+    raw_streams = data.get("streams")
     streams = tuple(
         Stream(
-            index=int(s.get("index", i)),
+            index=index if isinstance(index := s.get("index"), int) else i,
             kind=str(s.get("codec_type", "inconnu")),
             codec=str(s.get("codec_long_name") or s.get("codec_name") or "inconnu"),
             details=_describe(s),
+            codec_name=str(s.get("codec_name") or ""),
         )
-        for i, s in enumerate(data.get("streams") or [])
+        for i, s in enumerate(map(_dict, raw_streams if isinstance(raw_streams, list) else []))
     )
-    tags = {str(k): str(v) for k, v in (fmt.get("tags") or {}).items()}
+    tags = {str(k): str(v) for k, v in _dict(fmt.get("tags")).items()}
     return MediaInfo(
         path=src,
         format_name=str(fmt.get("format_long_name") or fmt.get("format_name") or "inconnu"),

@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
 
 from spectralab.core import filetypes, metadata
 from spectralab.core.activity import ActivityLog
+from spectralab.core.cancel import CancelToken
 from spectralab.core.metadata import FileMetadata, Severity
 from spectralab.core.paths import derived_path
 
@@ -74,11 +75,13 @@ def _clear(layout: QLayout) -> None:
             _clear(child)
 
 
-def _clean_many(paths: list[Path], keep_technical: bool) -> tuple[list[Path], list[str]]:
+def _clean_many(
+    paths: list[Path], keep_technical: bool, cancel: CancelToken | None = None
+) -> tuple[list[Path], list[str]]:
     outputs, errors = [], []
     for path in paths:
         try:
-            outputs.append(metadata.clean_copy(path, keep_technical=keep_technical))
+            outputs.append(metadata.clean_copy(path, keep_technical=keep_technical, cancel=cancel))
         except (metadata.ToolError, ValueError, OSError) as exc:
             errors.append(f"{path.name} : {exc}")
     return outputs, errors

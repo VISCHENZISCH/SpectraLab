@@ -38,6 +38,18 @@ _PATHS: dict[str, str] = {
     "resize": '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
     "refresh": '<path d="M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16M3 21v-5h5"/>',
     "wave": '<path d="M2 12h3l2-6 3 12 3-9 2 6 2-3h5"/>',
+    "play": '<path d="M7 4.5v15a.8.8 0 0 0 1.2.7l12-7.5a.8.8 0 0 0 0-1.4l-12-7.5A.8.8 0 0 0 7 4.5z"/>',
+    "pause": '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+    "stop": '<rect x="5" y="5" width="14" height="14" rx="2"/>',
+    "download": '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>',
+    "copy": '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
+    "fingerprint": '<path d="M12 11v3a8 8 0 0 1-2 5M8 11a4 4 0 0 1 8 0v2M5 9a7.5 7.5 0 0 1 14 0'
+    'M4 15c.5-1.5 1-3 1-5M19 15c0 2-.5 3.5-1.2 5M15.5 16c-.2 1.8-.8 3.4-1.7 4.8"/>',
+    "layers": '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+    "phase": '<path d="M2 12c2.5-6 5-6 7.5 0s5 6 7.5 0 4-4 5-2"/><path d="M2 12c2.5 6 5 6 7.5 0" opacity=".45"/>',
+    "volume": '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>',
+    "binary": '<rect x="4" y="3" width="5" height="8" rx="2.5"/><path d="M15 3v8M13 3h2M17 21v-8M15 13h2"/>'
+    '<rect x="4" y="13" width="5" height="8" rx="2.5"/>',
 }
 
 LOGO_SVG = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">

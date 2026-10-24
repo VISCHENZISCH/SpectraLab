@@ -146,8 +146,8 @@ class DashboardPage(QWidget):
             pair.addWidget(card)
         shortcuts.addLayout(pair)
         for icon_name, title, hint, key in (
-            ("audio", "Studio audio", "Formats, pistes, débit et métadonnées.", "audio"),
-            ("video", "Studio vidéo", "Codecs, résolution, flux et métadonnées.", "video"),
+            ("wave", "Spectre", "Lecture audio/vidéo, spectrogramme défilant et phases.", "spectrum"),
+            ("fingerprint", "Forensique", "Empreintes, entropie, fichiers cachés, stéganographie.", "forensics"),
             ("shield", "Confidentialité", "Repérez GPS, numéros de série et auteurs.", "metadata"),
         ):
             card = _ShortcutCard(icon_name, title, hint)
